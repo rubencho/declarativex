@@ -91,10 +91,8 @@ class Executor(abc.ABC):
             self_=self_, cls_=cls_
         )
         if class_config:
-            client_configuration = (
-                self.endpoint_configuration.client_configuration.merge(
-                    class_config
-                )
+            client_configuration = class_config.merge(
+                self.endpoint_configuration.client_configuration
             )
             self.endpoint_configuration.client_configuration = (
                 client_configuration
@@ -180,6 +178,16 @@ class Executor(abc.ABC):
         """
         return self.endpoint_configuration.client_configuration.middlewares
 
+    def _get_httpx_auth(self):
+        """
+        Get httpx-compatible auth if it exists. Returns None if auth is
+        a declarativex Auth (which is applied via apply_auth method).
+        """
+        auth = self.endpoint_configuration.client_configuration.auth
+        if auth and isinstance(auth, httpx.Auth):
+            return auth
+        return None
+
 
 class AsyncExecutor(Executor):
     async def wait_for(
@@ -213,6 +221,7 @@ class AsyncExecutor(Executor):
             follow_redirects=True,
             http2=bool(h2),
             proxies=self.endpoint_configuration.client_configuration.proxies,
+            auth=self._get_httpx_auth(),
         ) as client:
             httpx_request = request.to_httpx_request()
             httpx_response = await self.wait_for(
@@ -261,6 +270,7 @@ class SyncExecutor(Executor):
             follow_redirects=True,
             http2=bool(h2),
             proxies=self.endpoint_configuration.client_configuration.proxies,
+            auth=self._get_httpx_auth(),
         ) as client:
             httpx_request = request.to_httpx_request()
             httpx_response = self.wait_for(

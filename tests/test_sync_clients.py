@@ -254,29 +254,24 @@ def test_sync_register(client, response_type, error_type):
     "class_proxies,method_proxies,expected",
     [
         (
-            {"http://": "http://127.0.0.1:2023"},
-            {"https://": "https://127.0.0.1:2024"},
-            {
-                "http://": "http://127.0.0.1:2023",
-                "https://": "https://127.0.0.1:2024",
-            },
+            "http://127.0.0.1:2023",
+            "https://127.0.0.1:2024",
+            "https://127.0.0.1:2024",
         ),
         (
             "http://127.0.0.1:2020",
-            {"all://": "http://127.0.0.1:2021"},
-            {
-                "all://": "http://127.0.0.1:2021",
-            },
+            "http://127.0.0.1:2021",
+            "http://127.0.0.1:2021",
         ),
         (
-            {"all://": "http://127.0.0.1:2021"},
+            "http://127.0.0.1:2021",
             "http://127.0.0.1:2022",
-            {"all://": "http://127.0.0.1:2022"},
+            "http://127.0.0.1:2022",
         ),
         (
             Proxy(url="http://127.0.0.1:2012"),
             URL(url="http://127.0.0.2:2013"),
-            {"all://": "http://127.0.0.2:2013"},
+            URL(url="http://127.0.0.2:2013"),
         ),
         (
             URL(url="http://127.0.0.2:2013"),
@@ -286,12 +281,12 @@ def test_sync_register(client, response_type, error_type):
         (
             "http://127.0.0.1:2022",
             Proxy(url="http://127.0.0.1:2012"),
-            {"all://": "http://127.0.0.1:2012"},
+            Proxy(url="http://127.0.0.1:2012"),
         ),
         (
             URL(url="http://127.0.0.2:2013"),
             URL(url="http://127.0.0.2:2014"),
-            {"all://": "http://127.0.0.2:2014"},
+            URL(url="http://127.0.0.2:2014"),
         ),
     ],
 )
@@ -323,7 +318,8 @@ def test_proxies(
 
     client = DummyClient(base_url="https://reqres.in")
     client.get_users()
-    assert httpx_client_mock.call_args_list[0][1]["proxies"] == expected
+    actual = httpx_client_mock.call_args_list[0][1]["proxy"]
+    assert repr(actual) == repr(expected)
 
 
 def test_files_field(mocker: MockerFixture):

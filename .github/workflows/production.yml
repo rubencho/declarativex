@@ -16,9 +16,9 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: poetry
       - name: Install dependencies
         run: poetry install --all-extras
@@ -33,9 +33,9 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: poetry
       - name: Install dependencies
         run: poetry install --all-extras
@@ -50,9 +50,9 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: poetry
       - name: Install dependencies
         run: poetry install --all-extras
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         pydantic-version: [">=1,<2", ">=2,<3"]
       fail-fast: false
 
@@ -73,7 +73,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -95,9 +95,9 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: poetry
       - name: Install dependencies
         run: poetry install --all-extras
@@ -116,12 +116,12 @@ jobs:
     needs: [build-and-publish]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           key: mkdocs-${{ env.cache_id }}
           path: .cache

@@ -1,28 +1,20 @@
 import abc
 import asyncio
-import sys
 
 from functools import wraps
-from typing import TypeVar, Callable, Union, Any, Dict
+from typing import TypeVar, Callable, Union, Any, ParamSpec
 
 from httpx import URL, Proxy
 
 from .exceptions import MisconfiguredException
 from .warnings import warn_support_decorator_ignored
 
-if sys.version_info >= (3, 10):
-    from typing import ParamSpec
-
-    DecoratorArgs = ParamSpec("DecoratorArgs")
-else:
-    DecoratorArgs = ...
+DecoratorArgs = ParamSpec("DecoratorArgs")
 
 ReturnType = TypeVar("ReturnType")
 SUPPORTED_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
 DECLARED_MARK = "_declarativex_declared"
-ProxiesType = Union[
-    Dict[Union[URL, str], Union[URL, Proxy, str, None]], str, None, URL, Proxy
-]
+ProxiesType = Union[str, None, URL, Proxy]
 
 
 class Decorator(abc.ABC):
@@ -111,20 +103,6 @@ class SupportDecorator(Decorator, abc.ABC):
 def merge_proxies(
     proxies_one: ProxiesType, proxies_two: ProxiesType
 ) -> ProxiesType:
-    if proxies_one is None:
+    if proxies_two is not None:
         return proxies_two
-    if proxies_two is None:
-        return proxies_one
-    if isinstance(proxies_one, str):
-        proxies_one = {"all://": proxies_one}
-    if isinstance(proxies_two, str):
-        proxies_two = {"all://": proxies_two}
-    if isinstance(proxies_one, URL):
-        proxies_one = {"all://": str(proxies_one)}
-    if isinstance(proxies_two, URL):
-        proxies_two = {"all://": str(proxies_two)}
-    if isinstance(proxies_one, Proxy):
-        proxies_one = {"all://": str(proxies_one.url)}
-    if isinstance(proxies_two, Proxy):
-        proxies_two = {"all://": str(proxies_two.url)}
-    return proxies_one | proxies_two
+    return proxies_one

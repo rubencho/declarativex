@@ -1,4 +1,6 @@
-from typing import Dict, Optional, Sequence, Type
+from typing import Dict, Optional, Sequence, Type, Union
+
+import httpx
 
 from .auth import Auth
 from .exceptions import MisconfiguredException
@@ -20,7 +22,7 @@ class BaseClient:
     """
 
     base_url: str = ""
-    auth: Optional[Auth] = None
+    auth: Optional[Union[Auth, httpx.Auth]] = None
     default_headers: Dict[str, str] = {}
     default_query_params: Dict[str, str] = {}
     middlewares: Sequence[Middleware] = []
@@ -30,7 +32,7 @@ class BaseClient:
     def __init__(
         self,
         base_url: Optional[str] = None,
-        auth: Optional[Auth] = None,
+        auth: Optional[Union[Auth, httpx.Auth]] = None,
         default_headers: Optional[Dict[str, str]] = None,
         default_query_params: Optional[Dict[str, str]] = None,
         middlewares: Optional[Sequence[Middleware]] = None,

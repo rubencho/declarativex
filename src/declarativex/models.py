@@ -168,7 +168,7 @@ class ClientConfiguration:
     """
 
     base_url: Optional[str] = dataclasses.field(default=None)
-    auth: Optional[Auth] = None
+    auth: Optional[Union[Auth, httpx.Auth]] = None
     default_query_params: Dict[str, Any] = dataclasses.field(
         default_factory=dict
     )
@@ -338,7 +338,9 @@ class RawRequest:
             headers=h,
             _gql=endpoint_configuration.gql,
         )
-        if a:
+        # Only apply auth if it's a declarativex Auth (has apply_auth method)
+        # httpx.Auth will be passed directly to httpx.Client
+        if a and hasattr(a, "apply_auth"):
             request = a.apply_auth(request)
         return request
 

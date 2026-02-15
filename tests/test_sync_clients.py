@@ -319,6 +319,7 @@ def test_proxies(
     client = DummyClient(base_url="https://reqres.in")
     client.get_users()
     actual = httpx_client_mock.call_args_list[0][1]["proxy"]
+    # Use repr() because httpx.Proxy does not implement __eq__
     assert repr(actual) == repr(expected)
 
 

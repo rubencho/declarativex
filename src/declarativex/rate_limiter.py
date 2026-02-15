@@ -32,7 +32,11 @@ class rate_limiter(SupportDecorator):
     def __init__(self, max_calls: int, interval: float, reject: bool = False):
         self._bucket = Bucket(max_calls, interval)
         self._reject = reject
-        self._loop = asyncio.get_event_loop()
+        try:
+            self._loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No event loop running, create a new one
+            self._loop = asyncio.new_event_loop()
         self._lock = asyncio.Lock()
 
     async def _decorate_async(

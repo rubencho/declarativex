@@ -220,7 +220,7 @@ class AsyncExecutor(Executor):
         async with httpx.AsyncClient(
             follow_redirects=True,
             http2=bool(h2),
-            proxies=self.endpoint_configuration.client_configuration.proxies,
+            proxy=self.endpoint_configuration.client_configuration.proxies,
             auth=self._get_httpx_auth(),
         ) as client:
             httpx_request = request.to_httpx_request()
@@ -269,7 +269,7 @@ class SyncExecutor(Executor):
         with httpx.Client(
             follow_redirects=True,
             http2=bool(h2),
-            proxies=self.endpoint_configuration.client_configuration.proxies,
+            proxy=self.endpoint_configuration.client_configuration.proxies,
             auth=self._get_httpx_auth(),
         ) as client:
             httpx_request = request.to_httpx_request()

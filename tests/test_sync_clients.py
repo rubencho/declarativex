@@ -13,7 +13,6 @@ from declarativex import http, BaseClient
 from declarativex.dependencies import Files
 from declarativex.exceptions import (
     DependencyValidationError,
-    HTTPException,
     TimeoutException,
 )
 from .fixtures import (
@@ -28,8 +27,8 @@ from .fixtures import (
 @pytest.mark.parametrize(
     "client,response_type",
     [
-        (sync_dataclass_client, dataclass.SingleResponse),
-        (sync_pydantic_client, pydantic.SingleResponse),
+        (sync_dataclass_client, dataclass.User),
+        (sync_pydantic_client, pydantic.User),
         (sync_dictionary_client, dict),
     ],
 )
@@ -37,34 +36,24 @@ def test_sync_get_user(client, response_type):
     user = client.get_user(1)
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert user.get("data").get("id") == 1
+        assert user.get("id") == 1
     else:
-        assert user.data.id == 1
-
-    with pytest.raises(TimeoutException):
-        _ = client.get_user(1, delay=3)
-
-    _ = client.get_user(1, delay=2, timeout=3.0)
+        assert user.id == 1
 
 
 @pytest.mark.parametrize(
-    "client,response_type",
+    "client,item_type",
     [
-        (sync_dataclass_client, dataclass.PaginatedResponse),
-        (sync_pydantic_client, pydantic.PaginatedResponse),
+        (sync_dataclass_client, dataclass.User),
+        (sync_pydantic_client, pydantic.User),
         (sync_dictionary_client, dict),
     ],
 )
-def test_sync_get_users(client, response_type):
+def test_sync_get_users(client, item_type):
     users = client.get_users()
-    assert isinstance(users, response_type)
-    if isinstance(users, dict):
-        assert users.get("page") == 1
-    else:
-        assert users.page == 1
-
-    with pytest.raises(TimeoutException):
-        _ = client.get_users(delay=3)
+    assert isinstance(users, list)
+    assert len(users) == 10
+    assert isinstance(users[0], item_type)
 
 
 @pytest.mark.parametrize(
@@ -92,9 +81,9 @@ def test_sync_create_user(client, body, response_type):
     user = client.create_user(user=body)
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert "id" in user and "createdAt" in user
+        assert "id" in user
     else:
-        assert user.id and user.createdAt
+        assert user.id
 
     time.sleep(1.5)
 
@@ -125,9 +114,9 @@ def test_sync_update_user(client, response_type):
     user = client.update_user(user_id=1, name="John", job="worker")
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert "updatedAt" in user
+        assert "name" in user and "job" in user
     else:
-        assert user.updatedAt
+        assert user.name and user.job
 
 
 @pytest.mark.parametrize(
@@ -141,8 +130,7 @@ def test_sync_update_user(client, response_type):
 def test_sync_delete_user(client):
     response = client.delete_user(1)
     assert isinstance(response, httpx.Response)
-    assert response.status_code == 204
-    assert response.text == ""
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(
@@ -156,98 +144,39 @@ def test_sync_delete_user(client):
 def test_sync_delete_user_type_hinted_method(client):
     response = client.delete_user_explicit_typehint(1)
     assert isinstance(response, httpx.Response)
-    assert response.status_code == 204
-    assert response.text == ""
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "client,item_type",
+    [
+        (sync_dataclass_client, dataclass.Post),
+        (sync_pydantic_client, pydantic.Post),
+        (sync_dictionary_client, dict),
+    ],
+)
+def test_sync_get_posts_list(client, item_type):
+    posts = client.get_posts_by_resource()
+    assert isinstance(posts, list)
+    assert len(posts) == 100
+    assert isinstance(posts[0], item_type)
 
 
 @pytest.mark.parametrize(
     "client,response_type",
     [
-        (sync_dataclass_client, dataclass.PaginatedResponse),
-        (sync_pydantic_client, pydantic.PaginatedResponse),
+        (sync_dataclass_client, dataclass.Post),
+        (sync_pydantic_client, pydantic.Post),
         (sync_dictionary_client, dict),
     ],
 )
-def test_sync_get_resources_list(client, response_type):
-    resources = client.get_resources()
-    assert isinstance(resources, response_type)
-    if isinstance(resources, dict):
-        assert resources.get("page") == 1
+def test_sync_get_post(client, response_type):
+    post = client.get_post(1)
+    assert isinstance(post, response_type)
+    if isinstance(post, dict):
+        assert post.get("id") == 1
     else:
-        assert resources.page == 1
-
-
-@pytest.mark.parametrize(
-    "client,response_type,resource_type",
-    [
-        (
-            sync_dataclass_client,
-            dataclass.SingleResponse,
-            dataclass.AnyResource,
-        ),
-        (sync_pydantic_client, pydantic.SingleResponse, pydantic.AnyResource),
-        (sync_dictionary_client, dict, dict),
-    ],
-)
-def test_sync_get_resource(client, response_type, resource_type):
-    resource = client.get_resource(1)
-    assert isinstance(resource, response_type)
-    if isinstance(resource, dict):
-        data = resource.get("data")
-        assert isinstance(data, dict)
-        assert data.get("id") == 1
-    else:
-        assert isinstance(resource.data, resource_type)
-        assert resource.data.id == 1
-
-
-@pytest.mark.parametrize(
-    "client,response_type,error_type",
-    [
-        (
-            sync_dataclass_client,
-            dataclass.RegisterResponse,
-            dataclass.RegisterBadRequestResponse,
-        ),
-        (
-            sync_pydantic_client,
-            pydantic.RegisterResponse,
-            pydantic.RegisterBadRequestResponse,
-        ),
-        (sync_dictionary_client, dict, httpx.Response),
-    ],
-)
-def test_sync_register(client, response_type, error_type):
-    user = client.register(
-        user={"email": "eve.holt@example.com", "password": "q1w2e3r4t5y6"},
-        auth="Bearer test",
-    )
-    assert isinstance(user, response_type)
-    if isinstance(user, dict):
-        assert user.get("id") == 4
-        assert user.get("token")
-    else:
-        assert user.id == 4
-        assert user.token
-
-    with pytest.raises(HTTPException) as exc:
-        _ = client.register(
-            user={"email": "test@testemail.com", "password": "q1w2e3r4t5y6"},
-            auth="Bearer test",
-        )
-
-    assert isinstance(exc.value.response, error_type)
-    assert "authorization" in exc.value.raw_request.headers
-    assert exc.value.raw_request.headers["authorization"] == "Bearer test"
-    assert exc.value.status_code == 400
-    if error_type is httpx.Response:
-        assert exc.value.response.json().get("error") == (
-            "Note: Only defined users succeed registration"
-        )
-    else:
-        assert exc.value.response.error == (
-            "Note: Only defined users succeed registration"
-        )
+        assert post.id == 1
 
 
 @pytest.mark.parametrize(

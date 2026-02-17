@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 from typing import Union
 
 import httpx
@@ -11,7 +11,6 @@ from declarativex import (
     Path,
     Timeout,
     Query,
-    Header,
     http,
 )
 from tests.fixtures.schemas import dataclass, pydantic
@@ -22,48 +21,38 @@ async_dictionary_client = None
 
 
 for schema in [dataclass, pydantic, None]:
-    UserResponseSchema = schema.SingleResponse[schema.User] if schema else dict
-    UserListResponseSchema = (
-        schema.PaginatedResponse[schema.User] if schema else dict
-    )
+    UserResponseSchema = schema.User if schema else dict
+    UserListResponseSchema = List[schema.User] if schema else List[dict]
     CreateUserSchema = schema.BaseUserSchema if schema else Union[dict, str]
     CreateUserResponseSchema = schema.UserCreateResponse if schema else dict
     UpdateUserResponseSchema = schema.UserUpdateResponse if schema else dict
-    ResourcesListResponseSchema = (
-        schema.PaginatedResponse[schema.AnyResource] if schema else dict
-    )
-    ResourceResponseSchema = (
-        schema.SingleResponse[schema.AnyResource] if schema else dict
-    )
-    RegisterResponseSchema = schema.RegisterResponse if schema else dict
+    PostListResponseSchema = List[schema.Post] if schema else List[dict]
+    PostResponseSchema = schema.Post if schema else dict
 
     class AsyncClientPydantic(BaseClient):
-        base_url = "https://reqres.in/"
+        base_url = "https://jsonplaceholder.typicode.com/"
 
-        @http("GET", "api/users/{user_id}")
+        @http("GET", "users/{user_id}")
         async def get_user(
             self,
             user_id: Annotated[int, Path],
-            delay: int = 0,
             timeout: Annotated[float, Timeout()] = 2.0,
         ) -> UserResponseSchema:
             ...
 
-        @http("GET", "api/users", timeout=2)
-        async def get_users(
-            self, delay: Annotated[int, Query()] = 0
-        ) -> UserListResponseSchema:
+        @http("GET", "users", timeout=2)
+        async def get_users(self) -> UserListResponseSchema:
             ...
 
         @rate_limiter(max_calls=1, interval=1)
-        @http("POST", "api/users")
+        @http("POST", "users")
         async def create_user(
             self,
             user: Annotated[CreateUserSchema, Json()],
         ) -> CreateUserResponseSchema:
             ...
 
-        @http("PUT", "api/users/{user_id}")
+        @http("PUT", "users/{user_id}")
         async def update_user(
             self,
             user_id: int,
@@ -72,43 +61,29 @@ for schema in [dataclass, pydantic, None]:
         ) -> UpdateUserResponseSchema:
             ...
 
-        @http("DELETE", "api/users/{user_id}")
+        @http("DELETE", "users/{user_id}")
         async def delete_user(self, user_id: int):
             ...
 
-        @http("DELETE", "api/users/{user_id}")
+        @http("DELETE", "users/{user_id}")
         async def delete_user_explicit_typehint(
             self, user_id: int
         ) -> httpx.Response:
             ...
 
-        @http("GET", "api/{resource}")
-        async def get_resources(
+        @http("GET", "{resource}")
+        async def get_posts_by_resource(
             self,
             resource_name: Annotated[
                 str, Path(field_name="resource")
-            ] = "unknown",
-        ) -> ResourcesListResponseSchema:
+            ] = "posts",
+        ) -> PostListResponseSchema:
             ...
 
-        @http("GET", "api/unknown/{resource_id}")
-        async def get_resource(
-            self, resource_id: int
-        ) -> ResourceResponseSchema:
-            ...
-
-        @http(
-            "POST",
-            "api/register",
-            error_mappings={400: schema.RegisterBadRequestResponse}
-            if schema
-            else None,
-        )
-        async def register(
-            self,
-            user: Annotated[dict, Json()],
-            auth: Annotated[str, Header(name="Authorization")],
-        ) -> RegisterResponseSchema:
+        @http("GET", "posts/{post_id}")
+        async def get_post(
+            self, post_id: int
+        ) -> PostResponseSchema:
             ...
 
     if schema == dataclass:

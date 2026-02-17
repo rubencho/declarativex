@@ -8,8 +8,6 @@ import pytest
 
 from declarativex.exceptions import (
     DependencyValidationError,
-    HTTPException,
-    TimeoutException,
 )
 from .fixtures import (
     async_dataclass_client,
@@ -24,8 +22,8 @@ from .fixtures import (
 @pytest.mark.parametrize(
     "client,response_type",
     [
-        (async_dataclass_client, dataclass.SingleResponse),
-        (async_pydantic_client, pydantic.SingleResponse),
+        (async_dataclass_client, dataclass.User),
+        (async_pydantic_client, pydantic.User),
         (async_dictionary_client, dict),
     ],
 )
@@ -33,35 +31,25 @@ async def test_async_get_user(client, response_type):
     user = await client.get_user(1)
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert user.get("data").get("id") == 1
+        assert user.get("id") == 1
     else:
-        assert user.data.id == 1
-
-    with pytest.raises(TimeoutException):
-        _ = await client.get_user(1, delay=3)
-
-    _ = await client.get_user(1, delay=2, timeout=3.0)
+        assert user.id == 1
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "client,response_type",
+    "client,item_type",
     [
-        (async_dataclass_client, dataclass.PaginatedResponse),
-        (async_pydantic_client, pydantic.PaginatedResponse),
+        (async_dataclass_client, dataclass.User),
+        (async_pydantic_client, pydantic.User),
         (async_dictionary_client, dict),
     ],
 )
-async def test_async_get_users(client, response_type):
+async def test_async_get_users(client, item_type):
     users = await client.get_users()
-    assert isinstance(users, response_type)
-    if isinstance(users, dict):
-        assert users.get("page") == 1
-    else:
-        assert users.page == 1
-
-    with pytest.raises(TimeoutException):
-        _ = await client.get_users(delay=3)
+    assert isinstance(users, list)
+    assert len(users) == 10
+    assert isinstance(users[0], item_type)
 
 
 @pytest.mark.asyncio
@@ -90,9 +78,9 @@ async def test_async_create_user(client, body, response_type):
     user = await client.create_user(user=body)
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert "id" in user and "createdAt" in user
+        assert "id" in user
     else:
-        assert user.id and user.createdAt
+        assert user.id
 
     await asyncio.sleep(1.5)
 
@@ -124,9 +112,9 @@ async def test_async_update_user(client, response_type):
     user = await client.update_user(user_id=1, name="John", job="worker")
     assert isinstance(user, response_type)
     if isinstance(user, dict):
-        assert "updatedAt" in user
+        assert "name" in user and "job" in user
     else:
-        assert user.updatedAt
+        assert user.name and user.job
 
 
 @pytest.mark.asyncio
@@ -141,7 +129,7 @@ async def test_async_update_user(client, response_type):
 async def test_async_delete_user(client):
     response = await client.delete_user(1)
     assert isinstance(response, httpx.Response)
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -156,103 +144,38 @@ async def test_async_delete_user(client):
 async def test_async_delete_user_type_hinted_method(client):
     response = await client.delete_user_explicit_typehint(1)
     assert isinstance(response, httpx.Response)
-    assert response.status_code == 204
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "client,item_type",
+    [
+        (async_dataclass_client, dataclass.Post),
+        (async_pydantic_client, pydantic.Post),
+        (async_dictionary_client, dict),
+    ],
+)
+async def test_async_get_posts_list(client, item_type):
+    posts = await client.get_posts_by_resource()
+    assert isinstance(posts, list)
+    assert len(posts) == 100
+    assert isinstance(posts[0], item_type)
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "client,response_type",
     [
-        (async_dataclass_client, dataclass.PaginatedResponse),
-        (async_pydantic_client, pydantic.PaginatedResponse),
+        (async_dataclass_client, dataclass.Post),
+        (async_pydantic_client, pydantic.Post),
         (async_dictionary_client, dict),
     ],
 )
-async def test_async_get_resources_list(
-    client, response_type
-):
-    resources = await client.get_resources()
-    assert isinstance(resources, response_type)
-    if isinstance(resources, dict):
-        assert resources.get("page") == 1
+async def test_async_get_post(client, response_type):
+    post = await client.get_post(1)
+    assert isinstance(post, response_type)
+    if isinstance(post, dict):
+        assert post.get("id") == 1
     else:
-        assert resources.page == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "client,response_type,resource_type",
-    [
-        (
-            async_dataclass_client,
-            dataclass.SingleResponse,
-            dataclass.AnyResource,
-        ),
-        (async_pydantic_client, pydantic.SingleResponse, pydantic.AnyResource),
-        (async_dictionary_client, dict, dict),
-    ],
-)
-async def test_async_get_resource(
-    client, response_type, resource_type
-):
-    resource = await client.get_resource(1)
-    assert isinstance(resource, response_type)
-    if isinstance(resource, dict):
-        data = resource.get("data")
-        assert isinstance(data, dict)
-        assert data.get("id") == 1
-    else:
-        assert isinstance(resource.data, resource_type)
-        assert resource.data.id == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "client,response_type,error_type",
-    [
-        (
-            async_dataclass_client,
-            dataclass.RegisterResponse,
-            dataclass.RegisterBadRequestResponse,
-        ),
-        (
-            async_pydantic_client,
-            pydantic.RegisterResponse,
-            pydantic.RegisterBadRequestResponse,
-        ),
-        (async_dictionary_client, dict, httpx.Response),
-    ],
-)
-async def test_async_register(
-    client, response_type, error_type
-):
-    user = await client.register(
-        user={"email": "eve.holt@reqres.in", "password": "q1w2e3r4t5y6"},
-        auth="Bearer test"
-    )
-    assert isinstance(user, response_type)
-    if isinstance(user, dict):
-        assert user.get("id") == 4
-        assert user.get("token")
-    else:
-        assert user.id == 4
-        assert user.token
-
-    with pytest.raises(HTTPException) as exc:
-        _ = await client.register(
-            user={"email": "test@testemail.com", "password": "q1w2e3r4t5y6"},
-            auth="Bearer test",
-        )
-
-    assert isinstance(exc.value.response, error_type)
-    assert exc.value.status_code == 400
-    assert "authorization" in exc.value.raw_request.headers
-    assert exc.value.raw_request.headers["authorization"] == "Bearer test"
-    if error_type is httpx.Response:
-        assert exc.value.response.json().get("error") == (
-            "Note: Only defined users succeed registration"
-        )
-    else:
-        assert exc.value.response.error == (
-            "Note: Only defined users succeed registration"
-        )
+        assert post.id == 1

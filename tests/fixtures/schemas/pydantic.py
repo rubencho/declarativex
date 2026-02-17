@@ -1,42 +1,11 @@
-import datetime
-import warnings
-from typing import Generic, List, TypeVar
-
-from pydantic import BaseModel, AnyHttpUrl
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from pydantic.generics import GenericModel
-
-AnyModel = TypeVar("AnyModel", bound=BaseModel)
-
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-
-    class PaginatedResponse(GenericModel, Generic[AnyModel]):
-        page: int
-        per_page: int
-        total: int
-        total_pages: int
-        data: List[AnyModel] = []
-
-        class Config:
-            arbitrary_types_allowed = True
-
-    class SingleResponse(GenericModel, Generic[AnyModel]):
-        data: AnyModel
-
-        class Config:
-            arbitrary_types_allowed = True
+from pydantic import BaseModel
 
 
 class User(BaseModel):
     id: int
+    name: str
+    username: str
     email: str
-    first_name: str
-    last_name: str
-    avatar: AnyHttpUrl
 
 
 class BaseUserSchema(BaseModel):
@@ -46,25 +15,14 @@ class BaseUserSchema(BaseModel):
 
 class UserCreateResponse(BaseUserSchema):
     id: int
-    createdAt: datetime.datetime
 
 
 class UserUpdateResponse(BaseUserSchema):
-    updatedAt: datetime.datetime
-
-
-class AnyResource(BaseModel):
     id: int
-    name: str
-    year: int
-    color: str
-    pantone_value: str
 
 
-class RegisterResponse(BaseModel):
+class Post(BaseModel):
+    userId: int
     id: int
-    token: str
-
-
-class RegisterBadRequestResponse(BaseModel):
-    error: str
+    title: str
+    body: str

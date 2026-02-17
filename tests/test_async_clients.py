@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 from json import JSONDecodeError
@@ -74,8 +75,6 @@ async def test_async_get_users(client, item_type):
     ],
 )
 async def test_async_create_user(client, body, response_type):
-    import asyncio
-
     user = await client.create_user(user=body)
     assert isinstance(user, response_type)
     if isinstance(user, dict):
@@ -157,9 +156,7 @@ async def test_async_delete_user_type_hinted_method(client):
         (async_dictionary_client, dict),
     ],
 )
-async def test_async_get_posts_list(
-    client, item_type
-):
+async def test_async_get_posts_list(client, item_type):
     posts = await client.get_posts_by_resource()
     assert isinstance(posts, list)
     assert len(posts) == 100
@@ -175,9 +172,7 @@ async def test_async_get_posts_list(
         (async_dictionary_client, dict),
     ],
 )
-async def test_async_get_post(
-    client, response_type
-):
+async def test_async_get_post(client, response_type):
     post = await client.get_post(1)
     assert isinstance(post, response_type)
     if isinstance(post, dict):

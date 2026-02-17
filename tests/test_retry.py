@@ -13,18 +13,18 @@ from declarativex import BaseClient, http, retry, TimeoutException, Query
 
 @retry(max_retries=3, delay=0.1, exceptions=(TimeoutException,))
 class DummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users", timeout=0.1)
+    @http("GET", "/users", timeout=0.1)
     async def get_users(self, delay: Annotated[int, Query] = 5) -> dict:
         ...
 
 
 @retry(max_retries=3, delay=0.1, exceptions=(TimeoutException,))
 class SyncDummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users", timeout=0.1)
+    @http("GET", "/users", timeout=0.1)
     def get_users(self, delay: Annotated[int, Query] = 5) -> dict:
         ...
 
@@ -38,7 +38,7 @@ async def test_retry(mocker: MockerFixture):
     call = mocker.patch(
         "declarativex.executors.httpx.AsyncClient.send",
         side_effect=TimeoutException(
-            0.1, httpx.Request("GET", "https://reqres.in/api/users")
+            0.1, httpx.Request("GET", "https://jsonplaceholder.typicode.com/users")
         ),
     )
     sleep = mocker.patch("asyncio.sleep", MagicMock(wraps=asyncio.sleep))
@@ -59,7 +59,7 @@ def test_sync_retry(mocker: MockerFixture):
     call = mocker.patch(
         "declarativex.executors.httpx.Client.send",
         side_effect=TimeoutException(
-            0.1, httpx.Request("GET", "https://reqres.in/api/users")
+            0.1, httpx.Request("GET", "https://jsonplaceholder.typicode.com/users")
         ),
     )
     sleep = mocker.patch("time.sleep", MagicMock(wraps=time.sleep))

@@ -38,9 +38,9 @@ for schema in [dataclass, pydantic, None]:
     RegisterResponseSchema = schema.RegisterResponse if schema else dict
 
     class AsyncClientPydantic(BaseClient):
-        base_url = "https://reqres.in/"
+        base_url = "https://jsonplaceholder.typicode.com/"
 
-        @http("GET", "api/users/{user_id}")
+        @http("GET", "users/{user_id}")
         async def get_user(
             self,
             user_id: Annotated[int, Path],
@@ -49,21 +49,21 @@ for schema in [dataclass, pydantic, None]:
         ) -> UserResponseSchema:
             ...
 
-        @http("GET", "api/users", timeout=2)
+        @http("GET", "users", timeout=2)
         async def get_users(
             self, delay: Annotated[int, Query()] = 0
         ) -> UserListResponseSchema:
             ...
 
         @rate_limiter(max_calls=1, interval=1)
-        @http("POST", "api/users")
+        @http("POST", "users")
         async def create_user(
             self,
             user: Annotated[CreateUserSchema, Json()],
         ) -> CreateUserResponseSchema:
             ...
 
-        @http("PUT", "api/users/{user_id}")
+        @http("PUT", "users/{user_id}")
         async def update_user(
             self,
             user_id: int,
@@ -72,17 +72,17 @@ for schema in [dataclass, pydantic, None]:
         ) -> UpdateUserResponseSchema:
             ...
 
-        @http("DELETE", "api/users/{user_id}")
+        @http("DELETE", "users/{user_id}")
         async def delete_user(self, user_id: int):
             ...
 
-        @http("DELETE", "api/users/{user_id}")
+        @http("DELETE", "users/{user_id}")
         async def delete_user_explicit_typehint(
             self, user_id: int
         ) -> httpx.Response:
             ...
 
-        @http("GET", "api/{resource}")
+        @http("GET", "{resource}")
         async def get_resources(
             self,
             resource_name: Annotated[
@@ -91,7 +91,7 @@ for schema in [dataclass, pydantic, None]:
         ) -> ResourcesListResponseSchema:
             ...
 
-        @http("GET", "api/unknown/{resource_id}")
+        @http("GET", "posts/{resource_id}")
         async def get_resource(
             self, resource_id: int
         ) -> ResourceResponseSchema:
@@ -99,7 +99,7 @@ for schema in [dataclass, pydantic, None]:
 
         @http(
             "POST",
-            "api/register",
+            "posts",
             error_mappings={400: schema.RegisterBadRequestResponse}
             if schema
             else None,

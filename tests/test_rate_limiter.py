@@ -16,52 +16,52 @@ from declarativex.warnings import DeclarativeWarning
 
 @rate_limiter(max_calls=1, interval=1, reject=False)
 class DummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users")
+    @http("GET", "/users")
     async def get_users(self) -> dict:
         ...
 
-    @http("GET", "/api/users/{user_id}")
+    @http("GET", "/users/{user_id}")
     async def get_user(self, user_id: int) -> dict:
         ...
 
 
 @rate_limiter(max_calls=1, interval=1, reject=False)
 class SyncDummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users")
+    @http("GET", "/users")
     def get_users(self) -> dict:
         ...
 
-    @http("GET", "/api/users/{user_id}")
+    @http("GET", "/users/{user_id}")
     def get_user(self, user_id: int) -> dict:
         ...
 
 
 @rate_limiter(max_calls=0, interval=1, reject=True)
 class RejectDummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users")
+    @http("GET", "/users")
     async def get_users(self) -> dict:
         ...
 
-    @http("GET", "/api/users/{user_id}")
+    @http("GET", "/users/{user_id}")
     async def get_user(self, user_id: int) -> dict:
         ...
 
 
 @rate_limiter(max_calls=0, interval=1, reject=True)
 class RejectSyncDummyClient(BaseClient):
-    base_url = "https://reqres.in/"
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    @http("GET", "/api/users")
+    @http("GET", "/users")
     def get_users(self) -> dict:
         ...
 
-    @http("GET", "/api/users/{user_id}")
+    @http("GET", "/users/{user_id}")
     def get_user(self, user_id: int) -> dict:
         ...
 
@@ -125,7 +125,7 @@ def test_double_decoration():
         @rate_limiter(max_calls=1, interval=1, reject=False)
         class FooClient(BaseClient):
             @rate_limiter(max_calls=1, interval=1, reject=False)
-            @http("GET", "/api/users")
+            @http("GET", "/users")
             async def get_users(self) -> dict:
                 ...
 

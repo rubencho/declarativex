@@ -227,7 +227,7 @@ async def test_async_register(
     client, response_type, error_type
 ):
     user = await client.register(
-        user={"email": "eve.holt@reqres.in", "password": "q1w2e3r4t5y6"},
+        user={"email": "eve.holt@example.com", "password": "q1w2e3r4t5y6"},
         auth="Bearer test"
     )
     assert isinstance(user, response_type)

@@ -219,7 +219,7 @@ def test_sync_get_resource(client, response_type, resource_type):
 )
 def test_sync_register(client, response_type, error_type):
     user = client.register(
-        user={"email": "eve.holt@reqres.in", "password": "q1w2e3r4t5y6"},
+        user={"email": "eve.holt@example.com", "password": "q1w2e3r4t5y6"},
         auth="Bearer test",
     )
     assert isinstance(user, response_type)
@@ -303,7 +303,7 @@ def test_proxies(
                 200,
                 json={"dummy": "data"},
                 request=Mock(
-                    wraps=httpx.Request("GET", "https://reqres.in/api/users")
+                    wraps=httpx.Request("GET", "https://jsonplaceholder.typicode.com/users")
                 ),
             )
         )
@@ -312,11 +312,11 @@ def test_proxies(
     class DummyClient(BaseClient):
         proxies = class_proxies
 
-        @http("GET", "api/users", proxies=method_proxies)
+        @http("GET", "users", proxies=method_proxies)
         def get_users(self) -> dict:
             ...
 
-    client = DummyClient(base_url="https://reqres.in")
+    client = DummyClient(base_url="https://jsonplaceholder.typicode.com")
     client.get_users()
     actual = httpx_client_mock.call_args_list[0][1]["proxy"]
     # Use repr() because httpx.Proxy does not implement __eq__
@@ -334,13 +334,13 @@ def test_files_field(mocker: MockerFixture):
                 200,
                 json={"dummy": "data"},
                 request=Mock(
-                    wraps=httpx.Request("GET", "https://reqres.in/api/users")
+                    wraps=httpx.Request("GET", "https://jsonplaceholder.typicode.com/users")
                 ),
             )
         )
     )
 
-    @http("POST", "api/users", base_url="https://reqres.in")
+    @http("POST", "users", base_url="https://jsonplaceholder.typicode.com")
     def get_users(files: Annotated[dict, Files]) -> dict:
         ...
 

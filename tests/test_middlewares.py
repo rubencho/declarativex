@@ -42,8 +42,8 @@ class AsyncBarMiddleware(Middleware):
 def test_sync_middleware():
     @http(
         "GET",
-        "api/users",
-        base_url="https://reqres.in",
+        "users",
+        base_url="https://jsonplaceholder.typicode.com",
         middlewares=[FooMiddleware(), BarMiddleware()],
     )
     def get_users():
@@ -56,8 +56,8 @@ def test_sync_middleware():
 async def test_async_middleware():
     @http(
         "GET",
-        "api/users",
-        base_url="https://reqres.in",
+        "users",
+        base_url="https://jsonplaceholder.typicode.com",
         middlewares=[AsyncFooMiddleware(), AsyncBarMiddleware()],
     )
     async def get_users():
@@ -70,8 +70,8 @@ async def test_async_middleware():
 async def test_sync_async_middleware():
     @http(
         "GET",
-        "api/users",
-        base_url="https://reqres.in",
+        "users",
+        base_url="https://jsonplaceholder.typicode.com",
         middlewares=[FooMiddleware(), AsyncBarMiddleware()],
     )
     async def get_users():
@@ -88,8 +88,8 @@ async def test_sync_async_middleware():
 def test_async_sync_middleware():
     @http(
         "GET",
-        "api/users",
-        base_url="https://reqres.in",
+        "users",
+        base_url="https://jsonplaceholder.typicode.com",
         middlewares=[AsyncFooMiddleware(), BarMiddleware()],
     )
     def get_users():
@@ -160,8 +160,8 @@ def test_middleware_dont_call_client(mocker: MockerFixture):
 
     @http(
         "GET",
-        "api/users",
-        base_url="https://reqres.in",
+        "users",
+        base_url="https://jsonplaceholder.typicode.com",
         middlewares=[CacheMiddleware()],
     )
     def get_users():
